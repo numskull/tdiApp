@@ -11,7 +11,7 @@
 
         $(document).ready(function(){
             if (comp === "Word to Word Comparison" || comp === "Most Similar Terms" ||
-                    comp === "Word to User") {
+                    comp === "Word to User" || comp === "Word to Users") {
                 var terms=[];
                 function loadTerms(){
                     $.getJSON('{{ url_for("main.termsDic") }}', function(data, status, xhr){
@@ -29,7 +29,7 @@
                 });
             }
             if (comp === "User to User Comparison" || comp === "Most Similar Users" ||
-                comp === "Word to User") {
+                comp === "Word to User" || comp === "Word to Users") {
                 var users = [];
                 function loadUsers(){
                     $.getJSON('{{ url_for("main.usersDic") }}', function(data, status, xhr){
