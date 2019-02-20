@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}
+    LSM | Comparison Types
+{%  endblock %}
+
+{% block page_content %}
+    <div class="page-header">
+        <h1>Comparison Types</h1>
+        <p>This page acts as a landing page for the various comparison types.</p>
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title"><a href="{{ url_for('main.unitUnit') }}">Word to Word</a></h3>
+        </div>
+        <div class="panel-body">
+            This kind of comparison will allow you to get a measure of the distance between two terms in the feature space of the Internet Research Agency tweet corpus. What the result shows is how similarly the terms function within the context of all of the troll's tweets. The measure is based on the 'latent,' or underlying, conceptual structure of the term determined by all of its usages within the troll's tweets.
+        </div>
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title"><a href="{{ url_for('main.mostSimilar') }}">Most Similar Terms</a></h3>
+        </div>
+        <div class="panel-body">
+            This search will return those terms that are most similar in function and meaning to the given search term.
+        </div>
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title"><a href="{{ url_for('main.userUser') }}">User to User</a></h3>
+        </div>
+        <div class="panel-body">
+            This kind of comparison will allow you to get a measure of the distance between two users in the feature space of the Internet Research Agency tweet corpus. What the result shows is how similarly the users function within the context of all of each user's tweets. The measure is based on the 'latent,' or underlying, conceptual structure of the user's entire collection of tweets within the corpus.
+        </div>
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title"><a href="{{ url_for('main.mostSimilarUsers') }}">Most Similar Users</a></h3>
+        </div>
+        <div class="panel-body">
+            This search will return the most similar users to the given user. The Similarity is determined by the way that each user employs language; that is, the distance between users is determined by the conceptual similarity/structure of their language based on their collected tweets.
+        </div>
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title"><a href="{{ url_for('main.termToUser') }}">Word to User</a></h3>
+        </div>
+        <div class="panel-body">
+            This search will return the distance (similarity) between a User (composed of all of their tweets) and a term (as it functions within the entire corpus). This can be seen as a measure of how similarly the user's tweets function to the way that the term functions within the corpus (how well a term represents a user's tweet history).
+        </div>
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title"><a href="{{ url_for('main.termToAllUsers') }}">Most Similar Users to a Term</a></h3>
+        </div>
+        <div class="panel-body">
+            This search will return the distance (similarity) between a term (as its meaning is constructed by the corpus) and N users. This can be seen as a measure of how similarly the user's tweets function to the way that the term functions within the corpus (how well the term represents a user's tweet history).
+        </div>
+    </div>
+{% endblock %}

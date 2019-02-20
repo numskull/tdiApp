@@ -1,0 +1,112 @@
+{%  extends "base.html" %}
+{%  import 'bootstrap/wtf.html' as wtf %}
+{% block title %}LSM{%  endblock %}
+{%  block scripts %}
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js" ></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js'></script>
+    <link href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" rel="Stylesheet"></link>
+    <script type="text/javascript">
+        var comp = "{{ comp }}"
+
+        $(document).ready(function(){
+            if (comp === "Word to Word Comparison" || comp === "Most Similar Terms" ||
+                    comp === "Word to User") {
+                var terms=[];
+                function loadTerms(){
+                    $.getJSON('{{ url_for("main.termsDic") }}', function(data, status, xhr){
+                        for (var i = 0; i < data.length; i++) {
+                            terms.push(data[i].name);
+                        }
+                    });
+                };
+                loadTerms();
+                $('#term').autocomplete({
+                    source: terms,
+                });
+                $('#term2').autocomplete({
+                    source: terms,
+                });
+            }
+            if (comp === "User to User Comparison" || comp === "Most Similar Users" ||
+                comp === "Word to User") {
+                var users = [];
+                function loadUsers(){
+                    $.getJSON('{{ url_for("main.usersDic") }}', function(data, status, xhr){
+                        for (var i = 0; i < data.length; i++) {
+                            users.push(data[i].name);
+                        }
+                    });
+                };
+                loadUsers();
+                $('#userOne').autocomplete({
+                    source: users,
+                });
+                $('#userTwo').autocomplete({
+                    source: users,
+                });
+            }
+        });
+
+    </script>
+{% endblock %}
+{% block page_content %}
+    <div class="page-header">
+        <h1>Comparisons | {{ comp }}</h1>
+        <p>{{ desc|safe }}</p>
+    </div>
+    {% if termOne %}
+        <div class="alert alert-success">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <p>{{ termOne }} to {{ termTwo }}: <h2>{{ dist }}&deg;</h2></p>
+        </div>
+    {% elif user and term %}
+        <div class="alert alert-success">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <p>{{ term }} to {{ user }}: <h2>{{ dist }}&deg;</h2></p>
+        </div>
+    {% elif term %}
+        <div class="alert alert-success">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <p>Most similar terms to {{ term }}:</p>
+        <ol>
+            {% for t in dist %}
+                <li>{{ t[0]|safe }}: {{ t[1] }}&deg;</li>
+            {% endfor %}
+        </ol>
+        </div>
+    {% elif userOne %}
+        <div class="alert alert-success">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <p>{{ userOne }} to {{ userTwo }}: <h2>{{ dist }}&deg;</h2></p>
+        </div>
+
+    {% elif user %}
+        <div class="alert alert-success">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <p>Most similar Users to {{ user }}:</p>
+            <ol>
+                {% for t in dist %}
+                    <li>{{ t[0]|safe }}: {{ t[1] }}&deg;</li>
+                {% endfor %}
+            </ol>
+        </div>
+    {% endif %}
+    {{  wtf.quick_form(form) }}
+    <canvas id="chart" width="600" height="400"></canvas>
+    <!-- <script type="text/javascript">
+        var ctx = document.getElementById("chart").getContext("2d");
+        var start_degrees = 90;
+        var start_angle = 1.5 * Math.PI;
+        var end_degrees = {{ dist }};
+        var end_angle= (Math.PI/180) * end_degrees;
+        ctx.beginPath();
+        ctx.arc(100, 100, 100, 0, end_angle);
+        ctx.strokeStyle = "rgb(0, 222, 0)";
+        ctx.stroke();
+        ctx.moveTo(100, 100);
+        ctx.lineTo(100, 100);
+        ctx.stroke();
+    </script> -->
+{% endblock %}
+
