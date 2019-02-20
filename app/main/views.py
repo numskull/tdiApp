@@ -9,9 +9,6 @@ from numpy import dot, transpose
 import pandas as pd
 from math import degrees
 
-with open(os.path.join(os.getcwd(), 'app\\static\\data\\terms.csv'), 'r') as f:
-    r = csv.reader(f)
-    COLUMNS = list(r)
 
 @main.route('/', methods=['GET'])
 def index():
@@ -166,8 +163,8 @@ def cosine(x,y):
     return(acos)
 
 def wordToWord(termOne, termTwo):
-    u = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\u.csv'), delimiter=',')
-    s = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\s.csv'), delimiter=',')
+    u = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/u.csv'), delimiter=',')
+    s = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/s.csv'), delimiter=',')
     termOne = Term.query.filter_by(name=termOne)
     termTwo = Term.query.filter_by(name=termTwo)
     us = dot(u, np.diag(s))
@@ -176,8 +173,8 @@ def wordToWord(termOne, termTwo):
     return(dist, vecs)
 
 def mostSimilarTerms(term,numTerms):
-    u = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\u.csv'), delimiter=',')
-    s = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\s.csv'), delimiter=',')
+    u = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/u.csv'), delimiter=',')
+    s = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/s.csv'), delimiter=',')
     term = Term.query.filter_by(name=term)[0].id
     columns = Term.query.all()
     us = dot(u,np.diag(s))
@@ -195,8 +192,8 @@ def mostSimilarTerms(term,numTerms):
     return values
 
 def userToUser(userOne,userTwo):
-    v = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\v.csv'), delimiter=',')
-    s = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\s.csv'), delimiter=',')
+    v = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/v.csv'), delimiter=',')
+    s = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/s.csv'), delimiter=',')
     userOne = User.query.filter_by(username=userOne)[0].id
     userTwo = User.query.filter_by(username=userTwo)[0].id
     # need to transpose v to get the v matrix and do the dot product since v is already transposed from SVD.
@@ -206,8 +203,8 @@ def userToUser(userOne,userTwo):
     return(cosine(vs[userOne-1,], vs[userTwo-1,]))
 
 def userToAll(user, numUsers):
-    v = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\v.csv'), delimiter=',')
-    s = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\s.csv'), delimiter=',')
+    v = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/v.csv'), delimiter=',')
+    s = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/s.csv'), delimiter=',')
     user = User.query.filter_by(username=user)[0].id-1
     users = User.query.all()
     vs = dot(transpose(v),np.diag(s))
@@ -222,9 +219,9 @@ def userToAll(user, numUsers):
     return(values)
 
 def wordToUser(term, user):
-    v = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\v.csv'), delimiter=',')
-    s = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\s.csv'), delimiter=',')
-    u = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\u.csv'), delimiter=',')
+    v = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/v.csv'), delimiter=',')
+    s = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/s.csv'), delimiter=',')
+    u = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/u.csv'), delimiter=',')
     v = transpose(v)
     term = Term.query.filter_by(name=term)[0].id
     user = User.query.filter_by(username=user)[0].id-1
@@ -234,9 +231,9 @@ def wordToUser(term, user):
     return(dist)
 
 def wordToAllUsers(term, numUsers):
-    v = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\v.csv'), delimiter=',')
-    s = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\s.csv'), delimiter=',')
-    u = np.genfromtxt(os.path.join(os.getcwd(), 'app\\static\\data\\u.csv'), delimiter=',')
+    v = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/v.csv'), delimiter=',')
+    s = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/s.csv'), delimiter=',')
+    u = np.genfromtxt(os.path.join(os.getcwd(), 'app/static/data/u.csv'), delimiter=',')
     v = transpose(v)
     term = Term.query.filter_by(name=term)[0].id
     us = dot(u, np.sqrt(np.diag(s)))
