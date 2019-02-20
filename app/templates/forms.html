@@ -29,7 +29,7 @@
                 });
             }
             if (comp === "User to User Comparison" || comp === "Most Similar Users" ||
-                comp === "Word to User" || comp === "Word to Users") {
+                comp === "Word to User") {
                 var users = [];
                 function loadUsers(){
                     $.getJSON('{{ url_for("main.usersDic") }}', function(data, status, xhr){
