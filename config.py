@@ -15,7 +15,7 @@ class developmentConfig(Config):
     DEBUG = True
     SECRET_KEY = os.environ.get('SECRET_KEY')
     BASE_DIR = basedir
-    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or 'sqlite:///' \
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///' \
                               + os.path.join(basedir, 'data-test.sqlite')
 
 config = {
