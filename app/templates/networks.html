@@ -139,8 +139,8 @@
         .node {stroke: #fff; stroke-width: 1.5px;}
         .link {stroke: #999; stroke-opacity: .6;}
         #my_dataviz {
-            min-width: 960px;
-            min-height: 600px;
+            width: 960px;
+            height: 600px;
         }
         #bridge {
             overflow: auto;
@@ -148,7 +148,9 @@
     </style>
 {% endblock %}
 {% block page_content %}
-    <div id="my_dataviz"></div>
+    {% if net %}
+        <div id="my_dataviz"></div>
+    {% endif %}
     <div class="page-header">
         <h1>Networks</h1>
         <p>The network generated here is based on the similarity of each troll's
@@ -158,26 +160,29 @@
         of the similarity between nodes.</p>
     </div>
     {{  wtf.quick_form(form) }}
-
-    <div class="col-md-8" id="bridge">
-        <H1>Bridge Edges</H1>
-        <p>These edges represent connections without which the network would be
-            extremely closed off.  These nodes, and the connections between them,
-            represent connections between disparate conceptual frameworks.</p>
-        {% for bridge in bridges %}
-            <p>{{ bridge[0] }} ----- {{ bridge[1] }}</p>
-        {% endfor %}
-    </div>
-    <div class="col-md-4">
-        <h1>Most Central Nodes</h1>
-        <p>Current Flow Centrality uses electric current as a model for understanding
-        how information flows through nodes in a network. The most central nodes are those
-        through whom most information must flow.  The size of the nodes below are determined
-        by their centrality.</p>
-        {% for node in central %}
-            <p>{{ node[0] }}: {{ node[1] }}</p>
-        {% endfor %}
-    </div>
+    {% if bridges %}
+        <div class="col-md-8" id="bridge">
+            <H1>Bridge Edges</H1>
+            <p>These edges represent connections without which the network would be
+                extremely closed off.  These nodes, and the connections between them,
+                represent connections between disparate conceptual frameworks.</p>
+            {% for bridge in bridges %}
+                <p>{{ bridge[0] }} ----- {{ bridge[1] }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if central %}
+        <div class="col-md-4">
+            <h1>Most Central Nodes</h1>
+            <p>Current Flow Centrality uses electric current as a model for understanding
+            how information flows through nodes in a network. The most central nodes are those
+            through whom most information must flow.  The size of the nodes below are determined
+            by their centrality.</p>
+            {% for node in central %}
+                <p>{{ node[0] }}: {{ node[1] }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
 
 
 {%  endblock %}
