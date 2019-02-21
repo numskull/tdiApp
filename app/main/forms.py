@@ -43,3 +43,9 @@ class WordToAllUsers(FlaskForm):
     numUsers = IntegerField("Number of Users", validators=[validators.NumberRange(1,30,
                                               message="Please Choose a number less than 30")])
     submit = SubmitField("Find Similar Users")
+
+class UserNetwork(FlaskForm):
+    user = StringField('User', id="userOne")
+    numUsers = IntegerField("Number of Users", validators=[validators.NumberRange(1,30,
+                                            message="Please Choose a number less than 30")])
+    submit = SubmitField("Build Network")

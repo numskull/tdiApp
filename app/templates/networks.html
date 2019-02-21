@@ -1,1 +1,183 @@
 {% extends "base.html" %}
+{%  import 'bootstrap/wtf.html' as wtf %}
+{% block scripts %}
+    {{ super() }}
+    <script src="http://d3js.org/d3.v4.js"></script>
+    <script>
+        // set the dimensions and margins of the graph
+        var margin = {top: 10, right: 30, bottom: 30, left: 40},
+            width = 960 - margin.left - margin.right,
+            height = 600 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#my_dataviz")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+        var color = d3.scaleOrdinal().range(d3.schemeCategory20);
+        var attractForce = d3.forceManyBody().strength(100).distanceMax(400).distanceMin(60);
+        var repelForce = d3.forceManyBody().strength(-800).distanceMax(450).distanceMin(100);
+        var simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(function(d) { return d.id; }))
+            .force("attractForce", attractForce)
+            .force("repelForce", repelForce)
+            .force("charge", d3.forceManyBody())
+            .force("center", d3.forceCenter(width/2, height/2));
+        d3.json("{{ data|safe }}", function( data) {
+
+            // Initialize the links
+            var link = svg
+                .selectAll("line")
+                .data(data.links)
+                .enter()
+                .append("line")
+                .style("stroke-width", function(d) {return d.weight/5;})
+                .style("stroke", "#aaa");
+                //.style("stroke-width", function(d) { return Math.sqrt(d.weight); });
+
+            // Initialize the nodes
+            /*var node = svg
+                .selectAll("circle")
+                .data(data.nodes)
+                .enter()
+                .append("circle")
+                .attr("r", 20)
+                .attr("class", "node")
+                .style("fill", "#69b3a2");
+            */
+            var node = svg.append("g")
+                .attr("class", "nodes")
+                .selectAll("g")
+                .data(data.nodes)
+
+                .enter().append("g");
+
+            var circles = node.append("circle")
+                .attr("r", function(d){  if (d.betweenness * 100 < 1){return 5} else { return d.betweenness * 100};})
+                .attr("fill", function(d) { return(color(d.degree*10)); })
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            var lables = node.append("text")
+                .text(function(d) {
+                    return d.id;
+                })
+                .attr('x', 6)
+                .attr('y', 3);
+
+            // Let's list the force we wanna apply on the network
+            /*var simulation = d3.forceSimulation(data.nodes)                 // Force algorithm is applied to data.nodes
+                .force("link", d3.forceLink()                               // This force provides links between nodes
+                    .id(function(d) { return d.id; })                     // This provide  the id of a node
+                    .links(data.links)                                    // and this the list of links
+                )
+                .force("charge", d3.forceManyBody().strength(-400))         // This adds repulsion between nodes. Play with the -400 for the repulsion strength
+                .force("center", d3.forceCenter(width / 2, height / 2)); // This force attracts nodes to the center of the svg area
+                //.on("end", ticked); */
+            // This function is run at each iteration of the force algorithm, updating the nodes position.
+            simulation
+                .nodes(data.nodes)
+                .on("tick", ticked);
+
+            simulation.force("link")
+                .links(data.links);
+            function ticked() {
+                link
+                    .attr("x1", function (d) {
+                        return d.source.x;
+                    })
+                    .attr("y1", function (d) {
+                        return d.source.y;
+                    })
+                    .attr("x2", function (d) {
+                        return d.target.x;
+                    })
+                    .attr("y2", function (d) {
+                        return d.target.y;
+                    });
+
+                node
+                    .attr("transform", function(d) {
+                        return "translate(" + d.x + "," + d.y + ")";
+                    })
+                    /*
+                    .attr("cx", function (d) {
+                        return d.x + 6;
+                    })
+                    .attr("cy", function (d) {
+                        return d.y - 6;
+                    }); */
+            }
+        });
+        function dragstarted(d) {
+            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+
+        function dragended(d) {
+            if (!d3.event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+    </script>
+{%  endblock %}
+{% block styles %}
+    {{ super() }}
+    <style>
+        .node {stroke: #fff; stroke-width: 1.5px;}
+        .link {stroke: #999; stroke-opacity: .6;}
+        #my_dataviz {
+            min-width: 960px;
+            min-height: 600px;
+        }
+        #bridge {
+            overflow: auto;
+        }
+    </style>
+{% endblock %}
+{% block page_content %}
+    <div id="my_dataviz"></div>
+    <div class="page-header">
+        <h1>Networks</h1>
+        <p>The network generated here is based on the similarity of each troll's
+        collected tweets and is a measure of the similarity of the conceptual structure
+        inherent in those collections. Nodes are colored by degree centrality, sized by
+        current flow centrality, and the edge widths are determined by the magnitude
+        of the similarity between nodes.</p>
+    </div>
+    {{  wtf.quick_form(form) }}
+
+    <div class="col-md-8" id="bridge">
+        <H1>Bridge Edges</H1>
+        <p>These edges represent connections without which the network would be
+            extremely closed off.  These nodes, and the connections between them,
+            represent connections between disparate conceptual frameworks.</p>
+        {% for bridge in bridges %}
+            <p>{{ bridge[0] }} ----- {{ bridge[1] }}</p>
+        {% endfor %}
+    </div>
+    <div class="col-md-4">
+        <h1>Most Central Nodes</h1>
+        <p>Current Flow Centrality uses electric current as a model for understanding
+        how information flows through nodes in a network. The most central nodes are those
+        through whom most information must flow.  The size of the nodes below are determined
+        by their centrality.</p>
+        {% for node in central %}
+            <p>{{ node[0] }}: {{ node[1] }}</p>
+        {% endfor %}
+    </div>
+
+
+{%  endblock %}
