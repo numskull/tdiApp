@@ -1,14 +1,16 @@
 from flask import render_template, session, redirect, url_for, request, jsonify
 from . import main
-from .forms import WordToWord, WordToAll, WordToUser, UserToUser, UserToAll, WordToAllUsers
+from .forms import WordToWord, WordToAll, WordToUser, UserToUser, UserToAll, WordToAllUsers, UserNetwork
 from app.models import Term, User
 import os
 import csv
 import numpy as np
 from numpy import dot, transpose
 import pandas as pd
+import networkx as nx
 from math import degrees
-
+import json
+import time
 
 @main.route('/', methods=['GET'])
 def index():
@@ -21,6 +23,42 @@ def comparisons():
 @main.route('/networks', methods=['GET'])
 def networks():
     return render_template("networks.html")
+
+@main.route('/buildNet', methods=['GET', 'POST'])
+def buildNet():
+    form = UserNetwork()
+    user = None
+    numUsers = None
+    net = None
+    nodes = None
+    edges = None
+    data = None
+    bridges=None
+    central=None
+    if form.validate_on_submit():
+        user = form.user.data
+        numUsers = form.numUsers.data
+        net = buildNetwork(user, numUsers)
+        bb = nx.current_flow_betweenness_centrality(net, weight="weight")
+        central = sorted(bb.items(), key=lambda kv: kv[1], reverse=True)[0:5]
+        nx.set_node_attributes(net, bb, "betweenness")
+        degree = nx.degree_centrality(net)
+        nx.set_node_attributes(net, degree, "degree")
+        data = nx.node_link_data(net)
+        bridges= list(nx.bridges(net))
+        timeStamp = time.strftime("%Y%m%d-%H%M%S")
+        fp = os.path.join(os.getcwd(), f'app/static/data/data_file_{timeStamp}.json')
+        with open(fp, "w") as write_file:
+                json.dump(data, write_file)
+        data = f"/static/data/data_file_{timeStamp}.json"#, fp=(os.path.join(os.getcwd(), "\\app\\static\\data\\net.json")))
+        #formattedNodes = "nodes: [\n"
+        #for node in net.nodes():
+        #    fN = '{\n data: { id: %s }\n},\n' %node
+        #    formattedNodes += fN
+    return render_template("networks.html", form=form, user=user,
+                           numUsers=numUsers,net=net,
+                           nodes=nodes, edges=edges, data=data,
+                           bridges=bridges, central=central)
 
 @main.route('/terms', methods=['GET'])
 def termsDic():
@@ -117,7 +155,7 @@ def termToUser():
     desc = """This search will return the distance (similarity) between a User (composed
             of all of their tweets) and a term (as it functions within the entire corpus).
             This can be seen as a measure of how similarly the user's tweets function
-            to the way that the term functions within the corpus (how well a term 
+            to the way that the term functions within the corpus (how well a term
             represents a user's tweet history)."""
     user = None
     term = None
@@ -136,7 +174,7 @@ def termToAllUsers():
     desc = """This search will return the distance (similarity) between a term (as its meaning
             is constructed by the corpus) and <i>N</i> users.
             This can be seen as a measure of how similarly the user's tweets function
-            to the way that the term functions within the corpus (how well the term 
+            to the way that the term functions within the corpus (how well the term
             represents a user's tweet history)."""
     term = None
     numUsers = None
@@ -147,6 +185,7 @@ def termToAllUsers():
         dist = wordToAllUsers(term, numUsers)
     return render_template('forms.html', form=form, comp=comp, desc=desc,
                            term=term, dist=dist)
+
 
 
 ########################################################
@@ -246,3 +285,13 @@ def wordToAllUsers(term, numUsers):
             values[user.username] = dist
     values = sorted(values.items(), key=lambda kv: kv[1])[0:numUsers]
     return(values)
+
+def buildNetwork(user, numUsers, network = nx.Graph()):
+    sn = user
+    nodes = userToAll(user, numUsers)
+    for edge in nodes:
+        network.add_edge(sn, edge[0], weight=edge[1])
+        secondaryNodes = userToAll(edge[0], numUsers)
+        for sec in secondaryNodes:
+            network.add_edge(edge[0], sec[0], weight=sec[1])
+    return(network)

@@ -1,1 +1,169 @@
 {% extends "base.html" %}
+{% block scripts %}
+    {{ super() }}
+    <script src="http://d3js.org/d3.v4.js"></script>
+    <script>
+        // set the dimensions and margins of the graph
+        var margin = {top: 10, right: 30, bottom: 30, left: 40},
+            width = 960 - margin.left - margin.right,
+            height = 600 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#my_dataviz")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+        var color = d3.scaleOrdinal().range(d3.schemeCategory20);
+        var attractForce = d3.forceManyBody().strength(100).distanceMax(400).distanceMin(60);
+        var repelForce = d3.forceManyBody().strength(-800).distanceMax(450).distanceMin(100);
+        var simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(function(d) { return d.id; }))
+            .force("attractForce", attractForce)
+            .force("repelForce", repelForce)
+            .force("charge", d3.forceManyBody())
+            .force("center", d3.forceCenter(width/2, height/2));
+        d3.json("/static/data/data_file_20190221-060226.json", function( data) {
+
+            // Initialize the links
+            var link = svg
+                .selectAll("line")
+                .data(data.links)
+                .enter()
+                .append("line")
+                .style("stroke-width", function(d) { if(d.weight < 1){ return d.weight * 2;} else if(d.weight > 5){return d.weight/5;} else { return d.weight;}})
+                .style("stroke", "#aaa");
+                //.style("stroke-width", function(d) { return Math.sqrt(d.weight); });
+
+            // Initialize the nodes
+            /*var node = svg
+                .selectAll("circle")
+                .data(data.nodes)
+                .enter()
+                .append("circle")
+                .attr("r", 20)
+                .attr("class", "node")
+                .style("fill", "#69b3a2");
+            */
+            var node = svg.append("g")
+                .attr("class", "nodes")
+                .selectAll("g")
+                .data(data.nodes)
+
+                .enter().append("g");
+
+            var circles = node.append("circle")
+                .attr("r", function(d){  if (d.betweenness * 100 < 1){return 5} else { return d.betweenness * 100};})
+                .attr("fill", function(d) { return(color(d.degree*10)); })
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            var lables = node.append("text")
+                .text(function(d) {
+                    return d.id;
+                })
+                .attr('x', 6)
+                .attr('y', 3);
+
+            // Let's list the force we wanna apply on the network
+            /*var simulation = d3.forceSimulation(data.nodes)                 // Force algorithm is applied to data.nodes
+                .force("link", d3.forceLink()                               // This force provides links between nodes
+                    .id(function(d) { return d.id; })                     // This provide  the id of a node
+                    .links(data.links)                                    // and this the list of links
+                )
+                .force("charge", d3.forceManyBody().strength(-400))         // This adds repulsion between nodes. Play with the -400 for the repulsion strength
+                .force("center", d3.forceCenter(width / 2, height / 2)); // This force attracts nodes to the center of the svg area
+                //.on("end", ticked); */
+            // This function is run at each iteration of the force algorithm, updating the nodes position.
+            simulation
+                .nodes(data.nodes)
+                .on("tick", ticked);
+
+            simulation.force("link")
+                .links(data.links);
+            function ticked() {
+                link
+                    .attr("x1", function (d) {
+                        return d.source.x;
+                    })
+                    .attr("y1", function (d) {
+                        return d.source.y;
+                    })
+                    .attr("x2", function (d) {
+                        return d.target.x;
+                    })
+                    .attr("y2", function (d) {
+                        return d.target.y;
+                    });
+
+                node
+                    .attr("transform", function(d) {
+                        return "translate(" + d.x + "," + d.y + ")";
+                    })
+                    /*
+                    .attr("cx", function (d) {
+                        return d.x + 6;
+                    })
+                    .attr("cy", function (d) {
+                        return d.y - 6;
+                    }); */
+            }
+        });
+        function dragstarted(d) {
+            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+
+        function dragended(d) {
+            if (!d3.event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+    </script>
+{%  endblock %}
+{% block styles %}
+    {{ super() }}
+    <style>
+        .node {stroke: #fff; stroke-width: 1.5px;}
+        .link {stroke: #999; stroke-opacity: .6;}
+        #my_dataviz {
+            width: 960px;
+            height: 600px;
+        }
+        #bridge {
+            overflow: auto;
+        }
+    </style>
+{% endblock %}
+{% block page_content %}
+<div class="page-header">
+    <h1>Welcome to LSM and Trolls</h1>
+    <p>This website enables data exploration of the twitter <i>Internet Research Agency</i>
+      tweet corpus using Latent Semantic Mapping (LSM).  LSM maps textual data onto space so that
+      we can measure the distance between terms and documents.  This project treats a troll's
+      tweet history as a single document (the book of their thoughts, if you will). Doing this
+      allows us to take advantage of this exciting methodology.</p>
+</div>
+<div class="container">
+  <h2>The TEN_GOP network</h2>
+  <p>Below, you'll see a network diagram for the user TEN_GOP. In an upcoming article, Linville & Warren and <i>Five Thirty-eight</i> single out
+    TEN_GOP as a prolific and influential troll. The network diagram you see below is constructed by finding <i>the most similar users</i> to
+    TEN_GOP and the most similar nodes to each of these users. What we see, then, is a network of though or expression rather than a network of
+    explicit connections.  Looking at these kinds of networks can help us understand how information spreads and how the information within this
+    corpus works. The node <strong>size</strong> is determined by the user's information flow centrality (how important they are to the flow of
+    information in the whole network; These nodes connect disparate groups and thus enable the flow of information). The <strong>colors</strong> are
+    representative of their degree centrality.</p>
+    <div id="my_dataviz"></div>
+</div>
+{% endblock %}

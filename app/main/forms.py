@@ -12,34 +12,40 @@ import app
 #s = np.genfromtxt("s.csv", delimiter=',')
 #users = pd.read_csv("users.csv")
 class WordToWord(FlaskForm):
-    wordOne = StringField('First Word', id='term')
-    wordTwo = StringField('Second Word', id='term2')
+    wordOne = StringField('First Word', id='term', default="trump")
+    wordTwo = StringField('Second Word', id='term2', default="liberal")
     submit = SubmitField('Compare')
 
 class WordToAll(FlaskForm):
-    term = StringField('Search Term', id="term")
-    numWords = IntegerField("Number of Terms", validators=[validators.NumberRange(1,30,
+    term = StringField('Search Term', id="term", default="trump")
+    numWords = IntegerField("Number of Terms", default=10, validators=[validators.NumberRange(1,30,
                                             message="Please Choose a number less than 30")])
     submit = SubmitField('Find Similar')
 
 class WordToUser(FlaskForm):
-    term = StringField('Search Term', id="term")
-    user = StringField('User Name', id="userOne")
+    term = StringField('Search Term', id="term", default="republican")
+    user = StringField('User Name', id="userOne", default="TEN_GOP")
     submit = SubmitField("Compare")
 
 class UserToUser(FlaskForm):
-    userOne = StringField("First User", id="userOne")
-    userTwo = StringField("Second User", id="userTwo")
+    userOne = StringField("First User", id="userOne", default="TEN_GOP")
+    userTwo = StringField("Second User", id="userTwo", default="blackmattersus")
     submit = SubmitField("Compare")
 
 class UserToAll(FlaskForm):
-    user = StringField('User', id="userOne")
-    numUsers = IntegerField("Number of Users", validators=[validators.NumberRange(1,30,
+    user = StringField('User', id="userOne", default="NewOrleansON")
+    numUsers = IntegerField("Number of Users", default=10, validators=[validators.NumberRange(1,30,
                                               message="Please Choose a number less than 30")])
     submit = SubmitField("Find Similar")
 
 class WordToAllUsers(FlaskForm):
-    term = StringField("Term", id="term")
-    numUsers = IntegerField("Number of Users", validators=[validators.NumberRange(1,30,
+    term = StringField("Term", id="term", default="republican")
+    numUsers = IntegerField("Number of Users", default=10, validators=[validators.NumberRange(1,30,
                                               message="Please Choose a number less than 30")])
     submit = SubmitField("Find Similar Users")
+
+class UserNetwork(FlaskForm):
+    user = StringField('User', id="userOne", default="TEN_GOP")
+    numUsers = IntegerField("Number of Users", default = 15, validators=[validators.NumberRange(1,30,
+                                            message="Please Choose a number less than 30")])
+    submit = SubmitField("Build Network")
